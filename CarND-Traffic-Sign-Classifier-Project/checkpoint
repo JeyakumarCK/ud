@@ -1,0 +1,2 @@
+model_checkpoint_path: "lenet_german_traffic_sign"
+all_model_checkpoint_paths: "lenet_german_traffic_sign"
