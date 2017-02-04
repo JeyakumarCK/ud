@@ -63,16 +63,16 @@ In order to compensate the poor distribution, enormous amount of data needed to 
  - normalizing the images
 
 Rotation & Affine Transformation were not done on the input images.  Since the position of image important, rotatio & transformation would confuse the model instead of supporting for this problem. Hence it was avoided. Sample plots of images taken at various stages are given below for reference.
-![Original Images](/Behavioural_Cloning_P3/original_images.png=250x250)
+![Original Images](/Behavioural_Cloning_P3/original_images.png)
 Figure-3: Original Images
 
-![Cropped & Resized Images](/Behavioural_Cloning_P3/cropped_images.png=250x250)
+![Cropped & Resized Images](/Behavioural_Cloning_P3/cropped_images.png)
 Figure-4: Cropped & Resized Images
 
-![Brightness adjusted images](/Behavioural_Cloning_P3/brightness_adjusted_images.png=250x250)
+![Brightness adjusted images](/Behavioural_Cloning_P3/brightness_adjusted_images.png)
 Figure-5: Brightness adjusted images
 
-![Normalized images](/Behavioural_Cloning_P3/normalized_images.png=250x250)
+![Normalized images](/Behavioural_Cloning_P3/normalized_images.png)
 Figure-6: Normalized images that are fed to Model
 
 ##**Training**
