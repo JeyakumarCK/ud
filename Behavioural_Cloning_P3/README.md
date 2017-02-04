@@ -63,17 +63,13 @@ In order to compensate the poor distribution, enormous amount of data needed to 
  - normalizing the images
 
 Rotation & Affine Transformation were not done on the input images.  Since the position of image important, rotatio & transformation would confuse the model instead of supporting for this problem. Hence it was avoided. Sample plots of images taken at various stages are given below for reference.
-![Original Images](/Behavioural_Cloning_P3/original_images.png)
-Figure-3: Original Images
+![Original Images](/Behavioural_Cloning_P3/original_images.png)Figure-3: Original Images
 
-![Cropped & Resized Images](/Behavioural_Cloning_P3/cropped_images.png)
-Figure-4: Cropped & Resized Images
+![Cropped & Resized Images](/Behavioural_Cloning_P3/cropped_images.png)Figure-4: Cropped & Resized Images
 
-![Brightness adjusted images](/Behavioural_Cloning_P3/brightness_adjusted_images.png)
-Figure-5: Brightness adjusted images
+![Brightness adjusted images](/Behavioural_Cloning_P3/brightness_adjusted_images.png)Figure-5: Brightness adjusted images
 
-![Normalized images](/Behavioural_Cloning_P3/normalized_images.png)
-Figure-6: Normalized images that are fed to Model
+![Normalized images](/Behavioural_Cloning_P3/normalized_images.png)Figure-6: Normalized images that are fed to Model
 
 ##**Training**
 As explained in the dataset generation and model architecture sections, training started with a minimal set of data and a simple model that could run on my laptop (Intel i7 2.5GHz 6500U processor with 8GB DDR3 RAM).  Then gradually increased the dataset size & layers in the architecture, soon my laptop started throwing memory errors.
