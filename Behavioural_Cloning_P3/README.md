@@ -1,3 +1,4 @@
+#**Behavioral Cloning Project**
 ##**Project Approach**
 Behavioural Cloning Project is to demonstrate the reuse a pre-trained model and its trained weights to use it in real-time situations to predict and thereby demonstrate the behaviour learned.  From the overall point of view, it is cloning the behaviour of humans by machines. 
 
@@ -23,7 +24,7 @@ Convolution Neural Networks are the best deep learning models to analyse and lea
 
 Recollected the previous example architectures (like LeNet, AlexNet), and went through the NVIDIA model architecture as well from the link provided.  Adopted the NVIDIA architecture to use it with the current data, and trained the model and evaluated.  This time there was a significant improvement in the simulation. Then split the existing data into training and validation sets, and trained again.  In some of the epochs, the validation accuracy came to 1.000, which is an indication of over fitting the images.  So, added the drop out layers in the middle of architecture and able to train and evaluate again.  This time, there was some more improvement.  
 
-In the same manner, changed the activation from Relu to ELU (Exponential Linear Unit), which is found to be superior than Relu. (Refer the article refered about ELU in the references).  Similarly, on the pooling layer also, tried Max and Average pooling.  And finally changed the optimizer to Adam optimzer, which is considered to be the best optimizer for image processing.  All these changed improved the output of the autonomous driving, and I was changing the data augmentation also in parallel while tweaking the model.
+In the same manner, changed the activation from Relu to ELU (Exponential Linear Unit), which is found to be superior than Relu to introdue non-lineraity. (Refer the article refered about ELU in the references).  Similarly, on the pooling layer also, tried Max and Average pooling.  And finally changed the optimizer to Adam optimzer, which is considered to be the best optimizer for image processing.  All these changed improved the output of the autonomous driving, and I was changing the data augmentation also in parallel while tweaking the model.
 
 The final architecture arrived is described below. 
 
@@ -84,6 +85,13 @@ Once I got a reasonably performing model & dataset, the real tweaking started. P
  - Dataset sizes, augmentations, number of
    samples per epoch, number of samples for validation, data
    crop/resize, etc.
+
+##**Evaluation**
+After having the model tested and trained on a reasonable set of training & validation data, the simulation car was able to run on Autonomous mode on its own with out any off-roading. 
+The drive.py given in the kit was edited for handling the following changes
+- Included a step to Crop & Resize the input images to fit the images to model's expectaion
+- Included a step to adjust the brightness & normalize the input images
+- Added a logic to adjust 'throttle' to limit/maintain the speed of simulated vehicle.
 
 ##**Challenges**
 This project provided a great opportunity to learn various aspects on our own by doing some quick search/research. Few challenges faced are:
