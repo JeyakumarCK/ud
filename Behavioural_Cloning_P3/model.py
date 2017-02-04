@@ -201,7 +201,7 @@ if __name__ == "__main__":
 	model.fit_generator(trainGen, samples_per_epoch = SAMPLES_PER_EPOCH, nb_epoch = EPOCH_COUNT, 
 		validation_data = validGen, nb_val_samples = 1000)
 	print('Model trained successfully')
-	'''
+	
 	#---------------------------------------------------#
 	# Save Model & Weights to json and h5 files
 	#---------------------------------------------------#
@@ -212,4 +212,4 @@ if __name__ == "__main__":
 	with open(MODEL_FILE_NAME, 'w') as f:
 	   f.write(model.to_json())
 	print('#---------------------------------------------------#')
-	'''
+	
