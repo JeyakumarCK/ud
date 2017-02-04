@@ -86,8 +86,11 @@ Once I got a reasonably performing model & dataset, the real tweaking started. P
    samples per epoch, number of samples for validation, data
    crop/resize, etc.
 
+Used fit_generator method of keras to train the model efficiently with available computing resource.
+
 ##**Evaluation**
-After having the model tested and trained on a reasonable set of training & validation data, the simulation car was able to run on Autonomous mode on its own with out any off-roading. 
+After having the model tested and trained on a reasonable set of training & validation data, the simulation car was able to run on Autonomous mode on its own with out any off-roading. With the current trained model, the simulator was able to run on both the tracks with out any flaws.
+
 The drive.py given in the kit was edited for handling the following changes
 - Included a step to Crop & Resize the input images to fit the images to model's expectaion
 - Included a step to adjust the brightness & normalize the input images
