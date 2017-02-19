@@ -146,4 +146,5 @@ My overall approach to find out the lane lines for the image/video is given belo
 - I got a wierd problem in my code.  The `out_img` variable containing an image object that got created by stacking three layers of thresholded binary image is not getting rendered properly with `plt.imshow` or any other image viewing library.  I asked in the forum as well as worked with my mentor on it, but couldn't figure it out.  Analysing that array showed that it has non-zero values in it as it is supposed to be.  But it is just showing a black screen.  Even when I tried to paint different colors for the left and right lane pixels, it is not showing up.  Luckily it was not affecting any calculations or not falling part of the processing pipeline, hence left that for now. Otherwise I could have provided a better image (second one) for Question# 4.
 
 - In order to remain structured with the code, I tried creating classes to store settings variables.  Those are the `CameraCalibration()` and `Parameters()` classes.
+
 ---
