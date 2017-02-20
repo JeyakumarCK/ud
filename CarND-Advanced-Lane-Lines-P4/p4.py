@@ -535,8 +535,7 @@ def getBinaryImage(img, mtx, dist, sobel_kernel=3, s_thresh=(170, 255), sx_thres
     img_size = (img.shape[1], img.shape[0])
     src, dst = getTransformationPoints(img)
 
-    your_image = img
-    HSV = cv2.cvtColor(your_image, cv2.COLOR_RGB2HSV)
+    HSV = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     
     # For yellow
     yellow = cv2.inRange(HSV, (20, 100, 100), (50, 255, 255))
@@ -546,9 +545,9 @@ def getBinaryImage(img, mtx, dist, sobel_kernel=3, s_thresh=(170, 255), sx_thres
     white = cv2.inRange(HSV, (0,0,255-sensitivity_1), (255,20,255))
     
     sensitivity_2 = 60
-    HSL = cv2.cvtColor(your_image, cv2.COLOR_RGB2HLS)
+    HSL = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
     white_2 = cv2.inRange(HSL, (0,255-sensitivity_2,0), (255,255,sensitivity_2))
-    white_3 = cv2.inRange(your_image, (200,200,200), (255,255,255))
+    white_3 = cv2.inRange(img, (200,200,200), (255,255,255))
     
     bit_layer = np.zeros_like(yellow)
     bit_layer[(yellow > 0) | (white > 0) | (white_2 > 0) | (white_2 > 0) | (white_3 > 0)] = 1
@@ -752,9 +751,9 @@ def processVideo():
 #    cnt_nh = 0
     
     #vc_in_fn = 'NH_45_NearChennai.mp4'
-    vc_in_fn = 'harder_challenge_video.mp4'
+    #vc_in_fn = 'harder_challenge_video.mp4'
     #vc_in_fn = 'challenge_video.mp4'
-    #vc_in_fn = 'project_video.mp4'
+    vc_in_fn = 'project_video.mp4'
     vc_out_fn = 'out_' + vc_in_fn
     vclip = VideoFileClip(vc_in_fn)
     #vclip = vclip.subclip(0, 30)

@@ -1,5 +1,4 @@
 ##**Advanced Lane Finding Project**
-####**By Jeyakumar C.K.**
 
 The goals / steps of this project are the following:
 
@@ -49,15 +48,14 @@ In my image/video processing pipeline, creating a thresholded binary image from 
 In my code `p4.py`, I have created a function called **`getBinaryImage()`** which takes a color image as input and gives out the thresholded binary output image.  This function is called in the main **`pipeline()`** function to get the binary image. Following are the steps followed to arrive at the binary image.
 
  1. Undistort image
- 2. Perspective Transform
- 3. Convert the image from RGB to HLS color space
- 4. Apply Sobel operator in x direction on S-Channel with kernal size of 7 and threshold of 20 to 100
- 5. Apply Sobel operator in y direction on S-Channel with kernal size of 7 and threshold of 20 to 100
- 6. Apply magnitude threshold on Sobel x & y derivatives, with kernal size of 7 and threshold of 20 to 100
- 7. Apply Directional threshold on Sobel x & y derivatives, with kernal size of 7 and threshold of 0.7 to 1.3
- 8. Combine all 4 binaries (either sobel derivaties or directional & magnitude derivatives should be 1)
- 9. Apply Color threshold on S-Channel image with the range of 20 to 100
- 10. Finally combine the color thresholded and binary thresholded image to get the final thresholded binary image.
+ 2. Convert the image from RGB to HSV color space
+ 3. Pickup the Yellow colored pixels from the HSV image with a threshold
+ 4. Similarly, pickup the White colored pixels from the HSV image with a threshold
+ 5. Convert the image from RGB to HLS color space
+ 6. Pickup the White colored pixels from the HLS image with a suitable threshold
+ 7. Pickup the White colored pixels from the original image as well with the suitable threshold
+ 8. Combine all 4 colored binaries with an bitwise or condition
+ 9. Finally, Perspective Transform with the src and dst coordinates and arrive at the warped image
 
 An example thresholded image is shown below.  (Note: This image is taken by skipping the Step-2: Perspective Transformation)
 ![Thresholded Binary Image](output_images/pipeline_image_threshcolorbin.png)
@@ -139,12 +137,12 @@ My overall approach to find out the lane lines for the image/video is given belo
 
 - Arriving at an appropriate src and dst points.  I am using hardcoded src and dst points that I arrived after carefully viewing the test images.  Though it is very good to arrive at a dynamic coordinates using the image size reference, I used the hard coded values to avoid any confusion.  Often I ran in to zero-value error matrix exception at the middle of a video processing when the src & dst are not very appropriate.
 
+- Arriving at the binary thresholded image was quite interesting.  I was using the  `getBinaryImage1()` function to arrive the thresholded image, which gave a pretty reasonable result in the project video except at 3 frames.  Based on the suggestion provided, changed the logic to use color selection in HSV, HLS and normal image and combine them to identify the lanes even in a better manner.  The updated code is available in `getBinaryImage()` function.  It gives the perfect output video with out any error in the polygon drawn in the lanes.
+
 - Understanding the concepts and calculations behind identifying the pixel positions of the lane.  With the help of articles from Prof.Vivek Yadav, Hearty Paul and google searches, able to figure out what is happening and could do a program.  However, I still couldn't understand using the convulution for sliding window method, so I have ignored it for now, will be exploring in the upcoming weeks.
 
-- The verification of the detected lanes was quite a challenge, I was closely tracking on which method (histogram or non-histogram) is getting chosen dynamically by the algorithm for the given video by tracking almost all the parameters involved.  I was properly using the previous frame's pixel position coordinates if the detected lane line pixels were falling beyond the certain limit. However, on a trial & error basis, noted that using previous frame's value was giving even more skewed result.  Hence using the detected values itself irrespective of their validation result to arrive at the current output video.
+- The verification of the detected lanes was quite a challenging, I was closely tracking on which method (histogram or non-histogram) is getting chosen dynamically by the algorithm for the given video by tracking almost all the parameters involved.  I was properly using the previous frame's pixel position coordinates if the detected lane line pixels were falling beyond the certain limit.
 
 - I got a wierd problem in my code.  The `out_img` variable containing an image object that got created by stacking three layers of thresholded binary image is not getting rendered properly with `plt.imshow` or any other image viewing library.  I asked in the forum as well as worked with my mentor on it, but couldn't figure it out.  Analysing that array showed that it has non-zero values in it as it is supposed to be.  But it is just showing a black screen.  Even when I tried to paint different colors for the left and right lane pixels, it is not showing up.  Luckily it was not affecting any calculations or not falling part of the processing pipeline, hence left that for now. Otherwise I could have provided a better image (second one) for Question# 4.
 
 - In order to remain structured with the code, I tried creating classes to store settings variables.  Those are the `CameraCalibration()` and `Parameters()` classes.
-
----
