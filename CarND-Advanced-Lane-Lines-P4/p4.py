@@ -238,7 +238,7 @@ def lineCheck(line, curverad, fitx, fit):
             line.radius_of_curvature = curverad
         # If sanity check fails use the previous values
         else:
-            print('line.detected is true and roc ratio is >> 0.6')    
+            print('line.detected is true and roc ratio is > 0.6')    
             line.detected = False
             fitx = line.allx
     else:
@@ -252,7 +252,7 @@ def lineCheck(line, curverad, fitx, fit):
                 line.bestx = np.mean(fitx)            
                 line.radius_of_curvature = curverad
             else:
-                print('line.detected is false and roc ration is >> 1')
+                print('line.detected is false and roc ration is > 1')
                 line.detected = False
                 fitx = line.allx      
         # If curvature was defined
@@ -463,11 +463,13 @@ def drawPolygonAndUnwrap(binary_warped, undist, pts, Minv, img_size, text1, text
     
     return result
 
+
 #-----------------------------------------------------------------------#
 # Function to generate a warped thresholded color binary image from the given
 # color image and other threshold parameters
 #-----------------------------------------------------------------------#
-def getBinaryImage(img, mtx, dist, sobel_kernel=3, s_thresh=(170, 255), sx_thresh=(20, 100)):
+# UNUSED FUNCTION
+def getBinaryImage1(img, mtx, dist, sobel_kernel=3, s_thresh=(170, 255), sx_thresh=(20, 100)):
     img1 = np.copy(img)
 #    img = np.copy(img)
     
@@ -519,6 +521,42 @@ def getBinaryImage(img, mtx, dist, sobel_kernel=3, s_thresh=(170, 255), sx_thres
     color_binary[(s_binary > 0) | (combined > 0)] = 1
     #visualize3Images(img1, warped, color_binary)
     return M, Minv, undist, color_binary
+
+#-----------------------------------------------------------------------#
+# Function to generate a warped thresholded color binary image from the given
+# color image and other threshold parameters
+#-----------------------------------------------------------------------#
+def getBinaryImage(img, mtx, dist, sobel_kernel=3, s_thresh=(170, 255), sx_thresh=(20, 100)):
+    img1 = np.copy(img)
+    
+    img = cv2.undistort(img, mtx, dist, None, mtx)
+    undist = np.copy(img)
+    
+    img_size = (img.shape[1], img.shape[0])
+    src, dst = getTransformationPoints(img)
+
+    your_image = img
+    HSV = cv2.cvtColor(your_image, cv2.COLOR_RGB2HSV)
+    
+    # For yellow
+    yellow = cv2.inRange(HSV, (20, 100, 100), (50, 255, 255))
+    
+    # For white
+    sensitivity_1 = 68
+    white = cv2.inRange(HSV, (0,0,255-sensitivity_1), (255,20,255))
+    
+    sensitivity_2 = 60
+    HSL = cv2.cvtColor(your_image, cv2.COLOR_RGB2HLS)
+    white_2 = cv2.inRange(HSL, (0,255-sensitivity_2,0), (255,255,sensitivity_2))
+    white_3 = cv2.inRange(your_image, (200,200,200), (255,255,255))
+    
+    bit_layer = np.zeros_like(yellow)
+    bit_layer[(yellow > 0) | (white > 0) | (white_2 > 0) | (white_2 > 0) | (white_3 > 0)] = 1
+    
+    M, Minv = getTransformationMatrices(src, dst)
+    warped = cv2.warpPerspective(bit_layer, M, img_size, flags=cv2.INTER_LINEAR)
+    #visualize2Images(img, warped)
+    return M, Minv, undist, warped
 
 #-----------------------------------------------------------------------#
 # Define a class to store & send initial settings
@@ -582,7 +620,7 @@ def pipeline(img, mtx, dist, sobel_kernel=3, s_thresh=(170, 255), sx_thresh=(20,
         leftx, lefty, rightx, righty = findXY_NonHistogram(binary_warped, left_line.current_fit, right_line.current_fit)
         cnt_nh += 1
 
-    print('Lane finding by Histogram =', cnt_h, 'by Non-Histogram = ', cnt_nh)
+    print('Lane finding by Histogram =', cnt_h, ', by Non-Histogram = ', cnt_nh)
     left_fit, right_fit, left_fitx, right_fitx, ploty = pixelPositionToXYValues(leftx, lefty, rightx, righty, binary_warped.shape[0])
     #Find Radius of Curvature
     left_curve_rad = calculateRadiusOfCurvature(leftx, lefty)
@@ -662,7 +700,7 @@ def processImages():
     
     params = Parameters()
     params.camera_calibration = cam_calib
-    params.printValues()
+    #params.printValues()
 #    left_line = Line()
 #    right_line = Line()
 #    cnt_h = 0
@@ -714,12 +752,12 @@ def processVideo():
 #    cnt_nh = 0
     
     #vc_in_fn = 'NH_45_NearChennai.mp4'
-    #vc_in_fn = 'harder_challenge_video.mp4'
+    vc_in_fn = 'harder_challenge_video.mp4'
     #vc_in_fn = 'challenge_video.mp4'
-    vc_in_fn = 'project_video.mp4'
+    #vc_in_fn = 'project_video.mp4'
     vc_out_fn = 'out_' + vc_in_fn
     vclip = VideoFileClip(vc_in_fn)
-    #vclip = vclip.subclip(0, 20)
+    #vclip = vclip.subclip(0, 30)
     processed_vclip = vclip.fl_image(processVideoFrame)
     processed_vclip.write_videofile(vc_out_fn, audio=False)
     
@@ -732,14 +770,14 @@ cam_calib.mtx, cam_calib.dist = calibrateCameraBySamples('camera_cal', 'calibrat
 
 params = Parameters()
 params.camera_calibration = cam_calib
-params.printValues()
+#params.printValues()
 cnt_h = 0
 cnt_nh = 0
 left_line = Line()
 right_line = Line()
 
-processImages()
-#processVideo()
+#processImages()
+processVideo()
 
 #mtx, dist = calibrateCameraBySamples('camera_cal', 'calibration*.jpg', 9, 6, pickle_file_name='cam_calib_mtx_dist.p')
 #testUndistor('camera_cal/calibration5.jpg', mtx, dist)
