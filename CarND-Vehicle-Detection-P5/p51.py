@@ -14,9 +14,11 @@ from sklearn.cross_validation import train_test_split
 from scipy.ndimage.measurements import label
 from tqdm import tqdm
 
-
+#-------------------------------------------------------------------#
+#Parameters to tweak for feature extraction
+#-------------------------------------------------------------------#
 color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 9  # HOG orientations
+orient = 8  # HOG orientations
 pix_per_cell = 8 # HOG pixels per cell
 cell_per_block = 1 # HOG cells per block
 hog_channel = 'ALL' # Can be 0, 1, 2, or "ALL"
@@ -35,11 +37,16 @@ xy_window2=(96, 96) # window size to use in slide window function
 xy_window3=(128, 128) # window size to use in slide window function 
 xy_window4=(160, 160) # window size to use in slide window function 
 
-xy_overlap=(0.75, 0.75) # window overlap in slide window function
+xy_overlap=(0.50, 0.50)# window overlap in slide window function
 svc = None
+windows = None
 last_hot_boxes = []
 no_of_last_boxes = 12
 
+
+#-------------------------------------------------------------------#
+#Function to smoothen the hotboxes detected with previous detections
+#-------------------------------------------------------------------#
 def smooth_hotboxes(hot_windows):
     global last_hot_boxes
     
@@ -72,6 +79,9 @@ xy_overlap=(0.5, 0.5) # window overlap in slide window function
 
 '''
 
+#-------------------------------------------------------------------#
+#Function to load training images in to an array
+#-------------------------------------------------------------------#
 def loadTrainingImages(pattern='training_data/**/*.png'):
     images = glob.glob(pattern, recursive=True)
     cars = []
@@ -87,6 +97,9 @@ def loadTrainingImages(pattern='training_data/**/*.png'):
     print('count of notcars:', len(notcars), ', shape of one image is', notcars[11].shape, ', and datatype is', notcars[10].dtype)
     return cars, notcars
 
+#-------------------------------------------------------------------#
+#Function to load image file names into an array
+#-------------------------------------------------------------------#
 def loadTrainingImageFiles(pattern='training_data/**/*.png'):
     images = glob.glob(pattern, recursive=True)
     cars = []
@@ -102,7 +115,9 @@ def loadTrainingImageFiles(pattern='training_data/**/*.png'):
     print('Total count of notcars:', len(notcars))
     return cars, notcars
 
-# Define a function to return HOG features and visualization
+#-------------------------------------------------------------------#
+#Define a function to return HOG features and visualization
+#-------------------------------------------------------------------#
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, 
                         vis=False, feature_vec=True):
     # Call with two outputs if vis==True
@@ -122,15 +137,19 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
                        visualise=vis, feature_vector=feature_vec)
         return features
 
+#-------------------------------------------------------------------#
 # Define a function to compute binned color features  
+#-------------------------------------------------------------------#
 def bin_spatial(img, size=(32, 32)):
     # Use cv2.resize().ravel() to create the feature vector
     features = cv2.resize(img, size).ravel() 
     # Return the feature vector
     return features
 
+#-------------------------------------------------------------------#
 # Define a function to compute color histogram features 
 # NEED TO CHANGE bins_range to (0, 1) if reading .png files with mpimg! else (0, 255)
+#-------------------------------------------------------------------#
 def color_hist(img, nbins=32, bins_range=(0, 1)):
     # Compute the histogram of the color channels separately
     channel1_hist = np.histogram(img[:,:,0], bins=nbins)
@@ -141,8 +160,10 @@ def color_hist(img, nbins=32, bins_range=(0, 1)):
     # Return the individual histograms, bin_centers and feature vector
     return hist_features
 
+#-------------------------------------------------------------------#
 # Define a function to extract features from a list of images
 # Have this function call bin_spatial() and color_hist()
+#-------------------------------------------------------------------#
 def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
                         hist_bins=32, orient=9, 
                         pix_per_cell=8, cell_per_block=2, hog_channel=0,
@@ -161,51 +182,16 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
                             hog_channel=hog_channel, spatial_feat=spatial_feat, 
                             hist_feat=hist_feat, hog_feat=hog_feat)
 
-        '''
-        # apply color conversion if other than 'RGB'
-        if color_space != 'RGB':
-            if color_space == 'HSV':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-            elif color_space == 'LUV':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
-            elif color_space == 'HLS':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-            elif color_space == 'YUV':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
-            elif color_space == 'YCrCb':
-                feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
-        else: feature_image = np.copy(image)      
-
-        if spatial_feat == True:
-            spatial_features = bin_spatial(feature_image, size=spatial_size)
-            file_features.append(spatial_features)
-        if hist_feat == True:
-            # Apply color_hist()
-            hist_features = color_hist(feature_image, nbins=hist_bins)
-            file_features.append(hist_features)
-        if hog_feat == True:
-        # Call get_hog_features() with vis=False, feature_vec=True
-            if hog_channel == 'ALL':
-                hog_features = []
-                for channel in range(feature_image.shape[2]):
-                    hog_features.append(get_hog_features(feature_image[:,:,channel], 
-                                        orient, pix_per_cell, cell_per_block, 
-                                        vis=False, feature_vec=True))
-                hog_features = np.ravel(hog_features)        
-            else:
-                hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, 
-                            pix_per_cell, cell_per_block, vis=False, feature_vec=True)
-            # Append the new feature vector to the features list
-            file_features.append(hog_features)
-        '''
         features.append(file_features)
     # Return list of feature vectors
     return features
     
+#-------------------------------------------------------------------#
 # Define a function that takes an image,
 # start and stop positions in both x and y, 
 # window size (x and y dimensions),  
 # and overlap fraction (for both x and y)
+#-------------------------------------------------------------------#
 def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None], 
                     xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
     # If x and/or y start/stop positions not defined, set to image size
@@ -247,7 +233,9 @@ def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None],
     # Return the list of windows
     return window_list
 
+#-------------------------------------------------------------------#
 # Define a function to draw bounding boxes
+#-------------------------------------------------------------------#
 def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
     # Make a copy of the image
     imcopy = np.copy(img)
@@ -258,9 +246,11 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
     # Return the image copy with boxes drawn
     return imcopy
 
+#-------------------------------------------------------------------#
 # Define a function to extract features from a single image window
 # This function is very similar to extract_features()
 # just for a single image rather than list of images
+#-------------------------------------------------------------------#
 def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
                         hist_bins=32, orient=9, 
                         pix_per_cell=8, cell_per_block=2, hog_channel=0,
@@ -307,8 +297,10 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
     #9) Return concatenated array of features
     return np.concatenate(img_features)
 
+#-------------------------------------------------------------------#
 # Define a function you will pass an image 
 # and the list of windows to be searched (output of slide_windows())
+#-------------------------------------------------------------------#
 def search_windows(img, windows, clf, scaler, color_space='RGB', 
                     spatial_size=(32, 32), hist_bins=32, 
                     hist_range=(0, 256), orient=9, 
@@ -341,6 +333,9 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
     #8) Return windows for positive detections
     return on_windows
 
+#-------------------------------------------------------------------#
+# Function to normalize the extracted features
+#-------------------------------------------------------------------#
 def normalize(car_features, notcar_features):
     X = np.vstack((car_features, notcar_features)).astype(np.float64)                        
     # Fit a per-column scaler
@@ -349,6 +344,9 @@ def normalize(car_features, notcar_features):
     scaled_X = X_scaler.transform(X)
     return X_scaler, scaled_X 
 
+#-------------------------------------------------------------------#
+# Utility Function to visualize images
+#-------------------------------------------------------------------#
 def visualize3Images(img1, img2, img3, tit1, tit2, tit3, cmap1, cmap2, cmap3, isImg=False):
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(24, 9))
     f.tight_layout()
@@ -374,6 +372,9 @@ def visualize3Images(img1, img2, img3, tit1, tit2, tit3, cmap1, cmap2, cmap3, is
     plt.show()
 
 
+#-------------------------------------------------------------------#
+# Utility Function to visualize images
+#-------------------------------------------------------------------#
 def visualize2Images(img1, img1Tit, img2, img2Tit):
     fig = plt.figure()
     plt.subplot(121)
@@ -387,6 +388,9 @@ def visualize2Images(img1, img1Tit, img2, img2Tit):
     fig.tight_layout()
     plt.show()
 
+#-------------------------------------------------------------------#
+# Function to prepare the training and test dataset
+#-------------------------------------------------------------------#
 def prepareTrainingAndTestData(sample_size=None):
     cars, notcars = loadTrainingImageFiles()
     if sample_size is not None:
@@ -434,6 +438,9 @@ def prepareTrainingAndTestData(sample_size=None):
     X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=0.2, random_state=rand_state)
     return X_scaler, X_train, X_test, y_train, y_test
 
+#-------------------------------------------------------------------#
+# Function that gives us a trained model to use
+#-------------------------------------------------------------------#
 def getTrainedModel(pf=None):
     # If pickle file having svc exists, read that file and return svc
     # else read the test data and train the model & return it.
@@ -463,19 +470,27 @@ def getTrainedModel(pf=None):
     
     return X_scaler, svc
 
+#-------------------------------------------------------------------#
+# Utility Function to visualize HOG images
+#-------------------------------------------------------------------#
 def visualizeHOG(img):
     img_original = np.copy(img)
     
-    color_space = 'RGB' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+    color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
     orient = 12  # HOG orientations
-    pix_per_cell = 8 # HOG pixels per cell
-    cell_per_block = 2 # HOG cells per block
-    hog_channel = 'ALL' # Can be 0, 1, 2, or "ALL"
+    pix_per_cell = 4 # HOG pixels per cell
+    cell_per_block = 1 # HOG cells per block
+    hog_channel = 1 # Can be 0, 1, 2, or "ALL"
     
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2YCR_CB)
     features, hog_image = get_hog_features(img[:,:,2], orient, pix_per_cell, cell_per_block, vis=True, feature_vec=False)
-    visualize3Images(img_original, img[:,:,1], hog_image, 'HOG Visualization of V Channel of HSV', True)
+    #visualize3Images(img_original, img[:,:,1], hog_image, 'HOG Visualization of V Channel of HSV', True)
+    visualize3Images(img_original, img[:,:,2], hog_image, 
+                     'Original Image', 'Image Channel', color_space, None, 'gray', 'gray', isImg=True)
 
+#-------------------------------------------------------------------#
+# Function to add heat to the heatmap
+#-------------------------------------------------------------------#
 def add_heat(heatmap, bbox_list):
     # Iterate through list of bboxes
     for box in bbox_list:
@@ -486,12 +501,18 @@ def add_heat(heatmap, bbox_list):
     # Return updated heatmap
     return heatmap# Iterate through list of bboxes
     
+#-------------------------------------------------------------------#
+# Function to apply threshold on the detection to remove false positives
+#-------------------------------------------------------------------#
 def apply_threshold(heatmap, threshold):
     # Zero out pixels below the threshold
     heatmap[heatmap <= threshold] = 0
     # Return thresholded map
     return heatmap
 
+#-------------------------------------------------------------------#
+# Function that draws rectangles on the images with the given labels
+#-------------------------------------------------------------------#
 def draw_labeled_bboxes(img, labels):
     # Iterate through all detected cars
     for car_number in range(1, labels[1]+1):
@@ -507,25 +528,32 @@ def draw_labeled_bboxes(img, labels):
     # Return the image
     return img
 
+#-------------------------------------------------------------------#
+# Function that processes a given image
+#-------------------------------------------------------------------#
 def process_image(image):
     draw_image = np.copy(image)
     # Uncomment the following line if you extracted training
     # data from .png images (scaled 0 to 1 by mpimg) and the
     # image you are searching is a .jpg (scaled 0 to 255)
     image = image.astype(np.float32)/255
-    windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop1, 
-                        xy_window=xy_window1, xy_overlap=xy_overlap)
-    #temp_img1 = draw_boxes(np.copy(draw_image), windows, color=(255, 0, 0), thick=4)
-    #print('I-windows to search', len(windows))
-    windows += slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop2, 
-                        xy_window=xy_window2, xy_overlap=xy_overlap)
-    #temp_img2 = draw_boxes(np.copy(draw_image), windows, color=(0, 255, 0), thick=4)
-    #print('II-windows to search', len(windows))
-    windows += slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop3, 
-                        xy_window=xy_window3, xy_overlap=xy_overlap)
-    #temp_img3 = draw_boxes(np.copy(draw_image), windows, color=(0, 0, 255), thick=4)
-    #print('total windows to search', len(windows))
+    global windows
+    if windows is None:
+        print('inside windows loop')
+        windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop1, 
+                            xy_window=xy_window1, xy_overlap=xy_overlap)
+        #temp_img1 = draw_boxes(np.copy(draw_image), windows, color=(255, 0, 0), thick=4)
+        #print('I-windows to search', len(windows))
+        windows += slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop2, 
+                            xy_window=xy_window2, xy_overlap=xy_overlap)
+        #temp_img2 = draw_boxes(np.copy(draw_image), windows, color=(0, 255, 0), thick=4)
+        #print('II-windows to search', len(windows))
+        windows += slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop3, 
+                            xy_window=xy_window3, xy_overlap=xy_overlap)
+        #temp_img3 = draw_boxes(np.copy(draw_image), windows, color=(0, 0, 255), thick=4)
+        #print('total windows to search', len(windows))
     
+    print('windows size', len(windows))
     hot_windows = search_windows(image, windows, clf, X_scaler, color_space=color_space, 
                             spatial_size=spatial_size, hist_bins=hist_bins, 
                             orient=orient, pix_per_cell=pix_per_cell, 
@@ -537,19 +565,22 @@ def process_image(image):
     hot_windows = smooth_hotboxes(hot_windows)
     print('new hot_windows', len(hot_windows))
     #print('hot_windows', hot_windows)
-    #window_img = draw_boxes(np.copy(draw_image), hot_windows, color=(0, 255, 0), thick=5)
+#    window_img = draw_boxes(np.copy(draw_image), hot_windows, color=(0, 255, 0), thick=5)
     heat = np.zeros_like(image[:,:,0]).astype(np.float)
     heat = add_heat(heat, hot_windows)
     heat = apply_threshold(heat,2)
     heatmap = np.clip(heat, 0, 255)
     labels = label(heatmap)
     final_img = draw_labeled_bboxes(np.copy(draw_image), labels)
-#    visualize3Images(window_img, heatmap, final_img, 
-#                     'Hot Boxes', 'Heat Map', 'Average Box', 
-#                     None, 'hot', None, True)
-#    return labels, final_img
+#    visualize3Images(draw_image, window_img, final_img, 
+#                     'Original', 'Raw Detection', 'Average Box', 
+#                     None, None, None, True)
+    return labels, final_img
     return final_img
 
+#-------------------------------------------------------------------#
+# Function to process images in a given folder/file pattern
+#-------------------------------------------------------------------#
 def process_images(fn_pattern):
     imgs = glob.glob(fn_pattern)
     for imgf in imgs:
@@ -557,6 +588,9 @@ def process_images(fn_pattern):
         image = mpimg.imread(imgf)
         labels, final_img = process_image(image)
 
+#-------------------------------------------------------------------#
+# Function to process video
+#-------------------------------------------------------------------#
 def process_video(vfn):
     out_vfn = 'out_' + vfn
     vclip = VideoFileClip(vfn)
@@ -565,77 +599,22 @@ def process_video(vfn):
     processed_vclip.write_videofile(out_vfn, audio=False)
     print('---------------Video Processing Completed------------')
     
-# main function starts here
-X_scaler, clf = getTrainedModel('scaler_svc.p')
 
+#-------------------------------------------------------------------#
+# main function starts here
+#-------------------------------------------------------------------#
+X_scaler, clf = getTrainedModel('scaler_svc.p')
 #process_images('test_images/*.jpg')
 process_video('p4_project_video.mp4')
 #process_video('test_video.mp4')
 
 
-#imgs = glob.glob('test_images/*.jpg')
-#for imgf in imgs:
-#    print('img file', imgf)
-#    image = mpimg.imread(imgf)
-#    labels, final_img = process_image(image)
-    
-#    draw_image = np.copy(image)
-#    
-#    # Uncomment the following line if you extracted training
-#    # data from .png images (scaled 0 to 1 by mpimg) and the
-#    # image you are searching is a .jpg (scaled 0 to 255)
-#    image = image.astype(np.float32)/255
-#    
-#    windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop1, 
-#                        xy_window=xy_window1, xy_overlap=xy_overlap)
-##    temp_img1 = draw_boxes(np.copy(draw_image), windows, color=(255, 0, 0), thick=4)
-#    print('I-windows to search', len(windows))
-#    windows += slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop2, 
-#                        xy_window=xy_window2, xy_overlap=xy_overlap)
-##    temp_img2 = draw_boxes(np.copy(draw_image), windows, color=(0, 255, 0), thick=4)
-#    print('II-windows to search', len(windows))
-#    windows += slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop3, 
-#                        xy_window=xy_window3, xy_overlap=xy_overlap)
-##    temp_img3 = draw_boxes(np.copy(draw_image), windows, color=(0, 0, 255), thick=4)
-#    #print('III-windows to search', len(windows))
-#    #windows += slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop4, 
-#    #                    xy_window=xy_window4, xy_overlap=xy_overlap)
-#    print('total windows to search', len(windows))
-##    visualize3Images(temp_img1, temp_img2, temp_img3, 
-##                     xy_window1, xy_window2, xy_window3, 
-##                     None, None, None, True)
-#    
-#    hot_windows = search_windows(image, windows, clf, X_scaler, color_space=color_space, 
-#                            spatial_size=spatial_size, hist_bins=hist_bins, 
-#                            orient=orient, pix_per_cell=pix_per_cell, 
-#                            cell_per_block=cell_per_block, 
-#                            hog_channel=hog_channel, spatial_feat=spatial_feat, 
-#                            hist_feat=hist_feat, hog_feat=hog_feat)                       
-#    
-#    print('hot_windows', len(hot_windows))
-#    #print('hot_windows', hot_windows)
-#    window_img = draw_boxes(np.copy(draw_image), hot_windows, color=(0, 255, 0), thick=5)
-#    heat = np.zeros_like(image[:,:,0]).astype(np.float)
-#    heat = add_heat(heat, hot_windows)
-#    heat = apply_threshold(heat,1)
-#    heatmap = np.clip(heat, 0, 255)
-#    labels = label(heatmap)
-#    final_img = draw_labeled_bboxes(np.copy(draw_image), labels)
-#    
-#    visualize3Images(window_img, heatmap, final_img, 
-#                     'Hot Boxes', 'Heat Map', 'Average Box', 
-#                     None, 'hot', None, True)
-
 #print('X_train.shape', X_train.shape, 'len(y_train)', len(y_train))
 #print('X_test.shape', X_test.shape, 'len(y_test)', len(y_test))
-
 #cars, notcars = loadTrainingImages('training_data/**/*1.png')
 #c_i = np.random.randint(0, len(cars)-1, size=3)
 #nc_i = np.random.randint(0, len(notcars)-1, size=3)
-#
-#visualize3Images(cars[c_i[0]], cars[c_i[1]], cars[c_i[2]], 'Random Sample from Cars')
-#visualize3Images(notcars[nc_i[0]], notcars[nc_i[1]], notcars[nc_i[2]], 'Random Sample from NotCars')
+#visualize3Images(cars[c_i[0]], cars[c_i[1]], cars[c_i[2]], 'Random Sample from Cars', 'Random Sample from Cars', 'Random Sample from Cars', None, None, None, isImg=True)
+#visualize3Images(notcars[nc_i[0]], notcars[nc_i[1]], notcars[nc_i[2]], 'Random Sample from NotCars', 'Random Sample from NotCars', 'Random Sample from NotCars', None, None, None, isImg=True)
 #visualizeHOG(cars[c_i[0]])
 #visualizeHOG(notcars[nc_i[0]])
-#visualizeHOG(notcars[nc_i[1]])
-#visualizeHOG(notcars[nc_i[2]])
