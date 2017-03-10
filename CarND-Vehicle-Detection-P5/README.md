@@ -90,7 +90,7 @@ The second function `search_windows` is the core function that takes an image to
 For any given scenarios, there is absolutely no need to search through the entire image to look for cars. Because, the vehicles are going to be driven only on the road, so I chose to search only in the bottom half of the image, to be more precise, I am searching in the range of 350 to 700 pixel range in the y-axis.  Moreover, the vehicles are going to be in different size depending on the proximity of the other vehicles, so I further split the region in to 3 and decided on the following size of the windows and overlap region to effectively arrive at the list of windows to search.
 
 Region|Window Size|Overlap
---|---|--
+---|---|---
 [350, 650]|(80, 80)|(0.50, 0.50)  
 [350, 650]|(96, 96)|(0.50, 0.50)  
 [350, 700]|(128, 128)|(0.50, 0.50)  
@@ -141,4 +141,5 @@ Challenges:
 3. The above two challenges can be eliminated by using GPU based computers/servers to a significant extent.
 4. Tweaking the parameters for the feature extraction was quite challenging, multiple iterations of trial and error was needed with some logic behind each change to arrive at the final settings.  However there are still lot of opportunities to improve.
 5. For detecting just cars alone is this challenging, then detecting pedestrians and other objects are going to be even more challenging.  And the worst part is to find the training data set for those other objects.  It is better to use a Deep Learning Neural Network instead of a Machine Learning classifier.  Even better option is to use any pre-trained models like LeNet or GoogLeNet CNN could be used to detect any objects that comes around the autonomous vehicle.  I plan to continue work on this further and try with some pre-trained CNN model to predit.
+
 ---
